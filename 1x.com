@@ -38,24 +38,40 @@ body {
 
 <form>
 
-<!-- 🔘 BUTTON -->
+<!-- BUTTON -->
 <div class="flex bg-black/40 p-1 rounded-2xl mb-4">
 <button type="button" id="dep-btn" onclick="toggleMode('deposit')" class="w-1/2 py-3 rounded-xl font-bold active-tab">
 ডিপোজিট
 </button>
 
-<button type="button" id="with-btn" onclick="toggleMode('withdraw')" class="w-1/2 py-3 rounded-xl font-bold text-gray-500">
+<button type="button" id="with-btn" onclick="toggleMode('withdraw')" class="w-1/2 py-3 rounded-xl font-bold text">
 উইথড্র
 </button>
 
 <input type="hidden" id="order_type" value="deposit">
 </div>
 
-<!-- 🔥 WITHDRAW LOCATION -->
+<!-- 🔥 FIXED WITHDRAW LOCATION -->
 <div id="withdraw-addr-box" class="hidden bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl text-center mb-4">
-<p class="text-cyan-400 font-bold text-xs">Withdraw Location</p>
-<p class="text-white text-sm">City: Bogra</p>
-<p class="text-white text-sm">Street: Mina Bazar 555 BDT Sonapur</p>
+
+<p class="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-2">
+Withdraw Location
+</p>
+
+<div class="space-y-1">
+
+<p class="text-xs font-bold text-white">
+City:
+<span class="text-cyan-400 uppercase"> Bogra </span>
+</p>
+
+<p class="text-xs font-bold text-white">
+Street:
+<span class="text-cyan-400 uppercase"> Mina Bazar 555 BDT Sonapur </span>
+</p>
+
+</div>
+
 </div>
 
 <!-- PLAYER -->
@@ -92,14 +108,12 @@ body {
 
 <script>
 
-// 🔢 NUMBER
 const agentNumbers = {
 bkash:"01330035019",
 nagad:"01330035019",
 rocket:""
 };
 
-// 🔥 TOGGLE
 function toggleMode(type){
 
 const depBtn=document.getElementById('dep-btn');
@@ -119,7 +133,7 @@ agentBox.classList.remove('hidden');
 userPhone.classList.add('hidden');
 addr.classList.add('hidden');
 
-dyn.placeholder="শেষের চারটি সংখ্যা ";
+dyn.placeholder="লাস্টের চারটি সংখ্যা";
 
 }else{
 
@@ -136,7 +150,6 @@ dyn.placeholder="W-Code";
 
 }
 
-// 🔁 METHOD CHANGE
 document.querySelectorAll('input[name="method"]').forEach(r=>{
 r.addEventListener('change',()=>{
 document.getElementById('display-number').innerText=agentNumbers[r.value];
@@ -144,7 +157,6 @@ document.getElementById('agent-box').classList.remove('hidden');
 });
 });
 
-// 🔥 AUTO LOAD FIX
 window.onload=function(){
 const selected=document.querySelector('input[name="method"]:checked');
 if(selected){
