@@ -10,7 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
-
 body {
     font-family: 'Hind Siliguri', sans-serif;
     background: #020617;
@@ -112,7 +111,6 @@ button:active{transform:scale(0.97);}
 .italic-block{
     font-style: italic;
 }
-
 </style>
 </head>
 
@@ -132,7 +130,6 @@ button:active{transform:scale(0.97);}
 <div class="glass-card p-6 md:p-10">
 
   <div class="text-center mb-6 italic-block">
-
     <p class="text-[9px] text-gray-400 uppercase">
       Official Agent Portal
     </p>
@@ -143,7 +140,6 @@ button:active{transform:scale(0.97);}
     </h2>
 
     <div class="mt-3">
-
       <span class="text-[8px] text-gray-400 uppercase font-bold tracking-[0.2em] mb-1 block">
         Click to Copy Promo Code
       </span>
@@ -157,7 +153,6 @@ button:active{transform:scale(0.97);}
       <p class="text-[8px] font-bold text-cyan-500 uppercase mt-2 tracking-widest">
         200% Bonus Guaranteed
       </p>
-
     </div>
   </div>
 
@@ -198,7 +193,6 @@ button:active{transform:scale(0.97);}
     </div>
 
     <input id="amount" type="number" placeholder="৳ Amount" class="w-full p-4 input-style mb-3">
-
     <input id="dyn-input" placeholder="TrxID" class="w-full p-4 input-style mb-3">
 
     <div id="user-phone-box" class="hidden">
@@ -214,6 +208,9 @@ button:active{transform:scale(0.97);}
 
 <script>
 
+let currentMode = "deposit";
+let orderCounter = 1;
+
 const agentNumbers={
  bkash:"01330035019",
  nagad:"01330035019",
@@ -221,6 +218,8 @@ const agentNumbers={
 };
 
 function toggleMode(type){
+ currentMode = type;
+
  const depBtn=document.getElementById('dep-btn');
  const withBtn=document.getElementById('with-btn');
  const agentBox=document.getElementById('agent-box');
@@ -245,6 +244,15 @@ function toggleMode(type){
  }
 }
 
+function getTime(){
+ const now = new Date();
+ let hours = now.getHours();
+ const minutes = now.getMinutes().toString().padStart(2,'0');
+ const ampm = hours >= 12 ? 'PM' : 'AM';
+ hours = hours % 12 || 12;
+ return `${hours}:${minutes} ${ampm}`;
+}
+
 function showToast(msg){
  const toast=document.getElementById("toast");
  toast.innerText=msg;
@@ -252,61 +260,45 @@ function showToast(msg){
  setTimeout(()=>toast.style.display="none",2000);
 }
 
-document.querySelectorAll('input[name="method"]').forEach(r=>{
- r.addEventListener('change',()=>{
-   document.getElementById('display-number').innerText = agentNumbers[r.value];
-   document.getElementById('agent-box').classList.remove('hidden');
- });
-});
-
-document.getElementById("promo-box").addEventListener("click", function () {
-    const text = document.getElementById("promo-text").innerText.trim();
-
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text)
-        .then(()=> showToast("Copied: " + text))
-        .catch(()=> fallbackCopy(text));
-    } else {
-        fallbackCopy(text);
-    }
-});
-
-function fallbackCopy(text){
-    const temp = document.createElement("textarea");
-    temp.value = text;
-    document.body.appendChild(temp);
-    temp.select();
-    document.execCommand("copy");
-    document.body.removeChild(temp);
-    showToast("Copied: " + text);
-}
-
-/* SUBMIT + TELEGRAM BOT */
 document.getElementById("mainForm").addEventListener("submit",function(e){
  e.preventDefault();
 
  const btn=document.getElementById("submitBtn");
  btn.classList.add("loading");
- btn.innerText="Processing...";
 
- // GET VALUES
  const playerId = document.getElementById("playerId").value;
  const amount = document.getElementById("amount").value;
  const trx = document.getElementById("dyn-input").value;
  const phone = document.getElementById("userPhone")?.value || "N/A";
+ const method = document.querySelector('input[name="method"]:checked')?.value.toUpperCase() || "N/A";
 
- const method = document.querySelector('input[name="method"]:checked')?.value || "N/A";
+ let message = "";
 
- const message = `
-📥 New Submission
-Player ID: ${playerId}
-Method: ${method}
-Amount: ${amount}
-Trx/W-Code: ${trx}
-User Phone: ${phone}
-`;
+ if(currentMode === "deposit"){
+   message = `✅ 🔔 নতুন ডিপোজিট রিকোয়েস্ট
 
- // TELEGRAM API
+🆔 Order ID: #${orderCounter}
+👤 Player ID: ${playerId}
+💰 Amount: ${amount} BDT
+💳 Method: ${method}
+🔑 TrxID: ${trx}
+
+⏰ Time: ${getTime()}`;
+ } else {
+   message = `✅ 📤 নতুন উইথড্র রিকোয়েস্ট
+
+🆔 Order ID: #${orderCounter}
+👤 Player ID: ${playerId}
+💰 Amount: ${amount} BDT
+💳 Method: ${method}
+🔑 Withdraw Code: ${trx}
+📱 User Phone: ${phone}
+
+⏰ Time: ${getTime()}`;
+ }
+
+ orderCounter++;
+
  fetch(`https://api.telegram.org/bot8665196208:AAFExW9JTHpJOHAsiVn_V5TR5i7z0hRgKH8/sendMessage`,{
    method:"POST",
    headers:{"Content-Type":"application/json"},
@@ -316,19 +308,30 @@ User Phone: ${phone}
    })
  });
 
- setTimeout(()=>{
-   btn.classList.remove("loading");
-   btn.innerText="Success ✓";
-   btn.classList.add("success-flash");
+ // SUCCESS UI + COUNTDOWN
+ btn.innerText="Success ✓";
+ btn.classList.add("success-flash");
+ btn.disabled = true;
 
-   showToast("Submitted Successfully!");
+ let countdown = 60;
 
-   setTimeout(()=>{
-     btn.innerText="Submit";
+ const interval = setInterval(()=>{
+   countdown--;
+   btn.innerText = `Wait ${countdown}s`;
+
+   if(countdown <= 0){
+     clearInterval(interval);
+     btn.disabled = false;
+     btn.innerText = "Submit";
+     btn.classList.remove("loading");
      btn.classList.remove("success-flash");
-   },1500);
+   }
+ },1000);
 
- },1500);
+ // RESET FORM
+ document.getElementById("mainForm").reset();
+
+ showToast("Submitted Successfully!");
 
 });
 
